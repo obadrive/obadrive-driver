@@ -99,6 +99,26 @@ class UrlContainer {
   static const String twoFactor = "driver/twofactor";
   static const String twoFactorEnable = "driver/twofactor/enable";
   static const String twoFactorDisable = "driver/twofactor/disable";
+  
+  // Subscription URLs
+  static const String subscriptionStatus = "driver/subscriptions/status";
+  static const String subscriptionsList = "driver/subscriptions";
+  static const String subscriptionStore = "driver/subscriptions";
+  static const String subscriptionServices = "driver/subscriptions/services";
+  static const String subscriptionActive = "driver/subscriptions/active";
+  static const String subscriptionPaymentDetails = "driver/subscriptions/payment-details";
+  static const String subscriptionPaymentOptions = "driver/subscriptions/payment-options";
+  static const String subscriptionBlockStatus = "driver/subscriptions/block-status";
+  static const String subscriptionAddRide = "driver/subscriptions/add-ride";
+  static const String subscriptionStats = "driver/subscriptions/stats";
+  
+  // Subscription Payment URLs
+  static const String subscriptionPaymentInitiate = "driver/subscription-payments/initiate";
+  static const String subscriptionPaymentManual = "driver/subscription-payments/manual";
+  static const String subscriptionPaymentStatus = "driver/subscription-payments/status";
+  static const String subscriptionPaymentHistory = "driver/subscription-payments/history";
+  static const String subscriptionPaymentCalculate = "driver/subscription-payments/calculate";
+  
   //
   static const String rideReceipt = "${baseUrl}driver/rides/receipt";
 

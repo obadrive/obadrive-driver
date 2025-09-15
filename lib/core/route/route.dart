@@ -47,6 +47,9 @@ import '../../presentation/screens/two_factor_screen/two_factor_setup_screen.dar
 import '../../presentation/screens/withdraw/add_withdraw_screen/add_withdraw_method_screen.dart';
 import '../../presentation/screens/withdraw/confirm_withdraw_screen/withdraw_confirm_screen.dart';
 import '../../presentation/screens/withdraw/withdraw_history/withdraw_screen.dart';
+import '../../presentation/screens/subscription/subscriptions_screen.dart';
+import '../../presentation/screens/subscription/create_subscription_screen.dart';
+import '../../presentation/screens/subscription/subscription_payment_history_screen.dart';
 import '../helper/shared_preference_helper.dart';
 
 class RouteHelper {
@@ -156,6 +159,11 @@ class RouteHelper {
 
   static const String previewImageScreen = "/preview-image-screen";
 
+  // Subscription routes
+  static const String subscriptionsScreen = "/subscriptions_screen";
+  static const String createSubscriptionScreen = "/create_subscription_screen";
+  static const String subscriptionPaymentHistoryScreen = "/subscription_payment_history_screen";
+
   List<GetPage> routes = [
     GetPage(name: splashScreen, page: () => const SplashScreen()),
     GetPage(name: onboardScreen, page: () => const OnBoardIntroScreen()),
@@ -208,6 +216,11 @@ class RouteHelper {
     GetPage(name: faqScreen, page: () => const FaqScreen()),
     GetPage(name: previewImageScreen, page: () => PreviewImageScreen(url: Get.arguments)),
     GetPage(name: maintenanceScreen, page: () => MaintenanceScreen()),
+    
+    // Subscription routes
+    GetPage(name: subscriptionsScreen, page: () => const SubscriptionsScreen()),
+    GetPage(name: createSubscriptionScreen, page: () => const CreateSubscriptionScreen()),
+    GetPage(name: subscriptionPaymentHistoryScreen, page: () => const SubscriptionPaymentHistoryScreen()),
   ];
 
   static Future<void> checkUserStatusAndGoToNextStep(User? user, {bool isRemember = false, String accessToken = "", String tokenType = ""}) async {

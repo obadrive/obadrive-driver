@@ -111,6 +111,8 @@ class MyImages {
 
   static const String twoFa = "assets/images/two_fa.svg";
 
+  static const String subscription = "assets/images/subscription.svg";
+
   static const String verification = "assets/images/kyc_verification.svg";
 
   static const String focus = "assets/images/focus.svg";

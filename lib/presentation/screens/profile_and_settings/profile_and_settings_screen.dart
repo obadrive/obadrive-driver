@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ovoride_driver/core/helper/string_format_helper.dart';
 import 'package:ovoride_driver/data/controller/account/profile_controller.dart';
+import 'package:ovoride_driver/data/controller/subscription/subscription_controller.dart';
 import 'package:ovoride_driver/data/repo/account/profile_repo.dart';
+import 'package:ovoride_driver/data/repo/subscription/subscription_repo.dart';
 import 'package:ovoride_driver/data/services/api_client.dart';
 import 'package:ovoride_driver/presentation/components/divider/custom_spacer.dart';
 import 'package:ovoride_driver/presentation/components/shimmer/user_shimmer.dart';
@@ -37,10 +39,20 @@ class _ProfileAndSettingsScreenState extends State<ProfileAndSettingsScreen> {
   void initState() {
     Get.put(ProfileRepo(apiClient: Get.find()));
     final controller = Get.put(ProfileController(profileRepo: Get.find()));
+    
+    // Inicializar controller de subscription se não estiver inicializado
+    if (!Get.isRegistered<SubscriptionController>()) {
+      Get.put(SubscriptionRepo(apiClient: Get.find()));
+      Get.put(SubscriptionController(repo: Get.find()));
+    }
+    
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       controller.loadProfileInfo();
+      // Carregar assinaturas para verificar se há alguma
+      print('🔄 Carregando assinaturas no ProfileAndSettingsScreen...');
+      Get.find<SubscriptionController>().loadSubscriptions();
     });
   }
 
@@ -144,6 +156,179 @@ class _ProfileAndSettingsScreenState extends State<ProfileAndSettingsScreen> {
                         MenuRowWidget(image: MyImages.twoFa, label: MyStrings.twoFactorAuth, onPressed: () => Get.toNamed(RouteHelper.twoFactorSetupScreen)),
                         spaceDown(Dimensions.space10),
                       ],
+                    ),
+                  ),
+                  spaceDown(Dimensions.space15),
+                  Container(
+                    padding: const EdgeInsets.all(Dimensions.space15),
+                    decoration: BoxDecoration(color: MyColor.getCardBgColor(), borderRadius: BorderRadius.circular(Dimensions.space12), boxShadow: MyUtils.getCardShadow()),
+                    child: GetBuilder<SubscriptionController>(
+                      builder: (subscriptionController) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          HeaderText(text: MyStrings.subscriptions.tr.toUpperCase(), textStyle: regularLarge.copyWith(color: MyColor.bodyText)),
+                          const SizedBox(height: Dimensions.space20),
+                          
+                          // Se não há assinaturas, mostrar botão para criar
+                          if (subscriptionController.subscriptionList.isEmpty)
+                            Column(
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(Dimensions.space15),
+                                  decoration: BoxDecoration(
+                                    color: MyColor.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(Dimensions.space8),
+                                    border: Border.all(color: MyColor.primaryColor.withOpacity(0.3)),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.subscriptions,
+                                        color: MyColor.primaryColor,
+                                        size: 32,
+                                      ),
+                                      const SizedBox(height: Dimensions.space10),
+                                      Text(
+                                        MyStrings.noSubscriptionFound.tr,
+                                        style: regularDefault.copyWith(
+                                          color: MyColor.colorBlack,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: Dimensions.space5),
+                                      Text(
+                                        'Crie sua primeira assinatura para começar a trabalhar',
+                                        style: regularSmall.copyWith(
+                                          color: MyColor.colorGrey,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: Dimensions.space15),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          onPressed: () => Get.toNamed(RouteHelper.createSubscriptionScreen),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: MyColor.primaryColor,
+                                            foregroundColor: MyColor.colorWhite,
+                                            padding: const EdgeInsets.symmetric(vertical: Dimensions.space12),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(Dimensions.space8),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            MyStrings.createSubscription.tr,
+                                            style: regularDefault.copyWith(
+                                              color: MyColor.colorWhite,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            // Se há assinaturas, mostrar informações e menu
+                            Column(
+                              children: [
+                                // Resumo das assinaturas
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(Dimensions.space15),
+                                  decoration: BoxDecoration(
+                                    color: MyColor.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(Dimensions.space8),
+                                    border: Border.all(color: MyColor.primaryColor.withOpacity(0.3)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            color: Colors.green,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: Dimensions.space10),
+                                          Text(
+                                            'Assinaturas Ativas: ${subscriptionController.subscriptionList.where((s) => s.isActive).length}',
+                                            style: regularDefault.copyWith(
+                                              color: MyColor.colorBlack,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: Dimensions.space10),
+                                      ...subscriptionController.subscriptionList.where((s) => s.isActive).take(2).map((subscription) => Container(
+                                        margin: const EdgeInsets.only(bottom: Dimensions.space5),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 6,
+                                              height: 6,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.green,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: Dimensions.space8),
+                                            Expanded(
+                                              child: Text(
+                                                '${subscription.service?.name ?? 'Serviço'} - ${subscription.paymentTypeText}',
+                                                style: regularSmall.copyWith(
+                                                  color: MyColor.colorGrey,
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              'R\$ ${subscription.amount ?? '0.00'}',
+                                              style: regularSmall.copyWith(
+                                                color: MyColor.primaryColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )).toList(),
+                                      if (subscriptionController.subscriptionList.where((s) => s.isActive).length > 2) ...[
+                                        const SizedBox(height: Dimensions.space5),
+                                        Text(
+                                          '... e mais ${subscriptionController.subscriptionList.where((s) => s.isActive).length - 2} assinaturas',
+                                          style: regularSmall.copyWith(
+                                            color: MyColor.colorGrey,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: Dimensions.space15),
+                                
+                                // Menu de assinaturas
+                                MenuRowWidget(image: MyImages.subscription, label: MyStrings.mySubscriptions, onPressed: () => Get.toNamed(RouteHelper.subscriptionsScreen)),
+                                const CustomDivider(space: Dimensions.space15),
+                                MenuRowWidget(image: MyImages.subscription, label: MyStrings.subscriptionPaymentHistory, onPressed: () => Get.toNamed(RouteHelper.subscriptionPaymentHistoryScreen)),
+                                const CustomDivider(space: Dimensions.space15),
+                                MenuRowWidget(
+                                  image: MyImages.addMoney, 
+                                  label: MyStrings.createSubscription, 
+                                  onPressed: () => Get.toNamed(RouteHelper.createSubscriptionScreen)
+                                ),
+                              ],
+                            ),
+                          
+                          spaceDown(Dimensions.space10),
+                        ],
+                      ),
                     ),
                   ),
                   spaceDown(Dimensions.space15),
