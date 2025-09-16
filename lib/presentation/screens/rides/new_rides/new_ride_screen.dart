@@ -41,16 +41,16 @@ class _NewRidesScreenState extends State<NewRidesScreen> {
   void initState() {
     super.initState();
     checkAppBarExpanded();
+    // Garantir controlador de assinatura ANTES do primeiro build
+    if (!Get.isRegistered<SubscriptionStatusController>()) {
+      Get.put(SubscriptionRepo(apiClient: Get.find()));
+      Get.put(SubscriptionStatusController(subscriptionRepo: Get.find()));
+    }
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       Get.find<DashBoardController>().isLoading = true;
       Get.find<DashBoardController>().initialData(shouldLoad: true);
-      // Garantir controlador de assinatura
-      if (!Get.isRegistered<SubscriptionStatusController>()) {
-        Get.put(SubscriptionRepo(apiClient: Get.find()));
-        Get.put(SubscriptionStatusController(subscriptionRepo: Get.find()));
-      } else {
-        Get.find<SubscriptionStatusController>().refreshSubscriptionStatus();
-      }
+      // Atualizar status após montar
+      Get.find<SubscriptionStatusController>().refreshSubscriptionStatus();
     });
   }
 
