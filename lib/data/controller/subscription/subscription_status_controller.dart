@@ -17,7 +17,8 @@ class SubscriptionStatusController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    checkSubscriptionStatus();
+    // Não checar automaticamente aqui; a checagem deve ocorrer
+    // somente após login bem-sucedido quando já houver token válido.
   }
 
   /// Verifica o status de assinatura do motorista
@@ -44,11 +45,13 @@ class SubscriptionStatusController extends GetxController {
         print('   - Assinatura ativa: ${activeSubscription.value?.id}');
       } else {
         print('❌ Erro ao verificar status: ${response.statusCode}');
-        shouldShowSubscriptionScreen.value = true; // Por segurança, mostra a tela
+        // Em erro (ex.: 401 não autenticado), não forçar tela de assinatura
+        shouldShowSubscriptionScreen.value = false;
       }
     } catch (e) {
       print('❌ Erro na verificação de status: $e');
-      shouldShowSubscriptionScreen.value = true; // Por segurança, mostra a tela
+      // Em exceção, não forçar tela de assinatura
+      shouldShowSubscriptionScreen.value = false;
     } finally {
       isLoading.value = false;
     }
