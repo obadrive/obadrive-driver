@@ -1,6 +1,5 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../environment.dart';
-import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:get/get.dart';
 import '../../../core/helper/string_format_helper.dart';
 import '../../../core/route/route.dart';
@@ -16,8 +15,11 @@ class SocialLoginController extends GetxController {
   SocialLoginRepo repo;
   SocialLoginController({required this.repo});
 
-  // Usar instância padrão e configurar via plataforma (suporta serverClientId no Android)
-  final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+  // Configuração direta com serverClientId (Android) e escopos padrões
+  final GoogleSignIn googleSignIn = GoogleSignIn(
+    serverClientId: Environment.googleServerClientId,
+    scopes: <String>['email', 'profile'],
+  );
   bool isGoogleSignInLoading = false;
 
   Future<void> signInWithGoogle() async {
@@ -25,31 +27,26 @@ class SocialLoginController extends GetxController {
       isGoogleSignInLoading = true;
       update();
       const List<String> scopes = <String>['email', 'profile'];
-      // Configurar parâmetros incluindo serverClientId para Android
-      await GoogleSignInPlatform.instance.init(
-        hostedDomain: null,
-        clientId: null,
-        serverClientId: Environment.googleServerClientId,
-        scopes: scopes,
-        signInOption: SignInOption.standard,
-        forceCodeForRefreshToken: false,
-      );
-
-      googleSignIn.signOut();
-      await googleSignIn.initialize();
-      var googleUser = await googleSignIn.authenticate();
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      await googleSignIn.signOut();
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        isGoogleSignInLoading = false;
+        update();
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       if (googleAuth.idToken == null) {
         isGoogleSignInLoading = false;
         update();
         return;
       }
-      final GoogleSignInClientAuthorization? authorization = await googleUser.authorizationClient.authorizationForScopes(scopes);
-      printX(authorization?.accessToken);
+      // Em versões recentes, foque no idToken (accessToken pode não estar disponível)
+      final token = googleAuth.idToken ?? '';
+      printX(token);
 
       await socialLoginUser(
         provider: 'google',
-        accessToken: authorization?.accessToken ?? '',
+        accessToken: token,
       );
     } catch (e) {
       printX(e.toString());
