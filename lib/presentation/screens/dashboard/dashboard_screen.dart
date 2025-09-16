@@ -11,7 +11,6 @@ import 'package:ovoride_driver/data/repo/dashboard/dashboard_repo.dart';
 import 'package:ovoride_driver/data/repo/ride/ride_repo.dart';
 import 'package:ovoride_driver/presentation/components/annotated_region/annotated_region_widget.dart';
 import 'package:ovoride_driver/presentation/components/bottom-nav-bar/nav_bar_item_widget.dart';
-import 'package:ovoride_driver/presentation/screens/ride_history/intercity_ride_screen.dart';
 import 'package:ovoride_driver/presentation/screens/ride_history/ride_screen.dart';
 import 'package:ovoride_driver/core/utils/my_color.dart';
 import 'package:ovoride_driver/core/utils/my_images.dart';
@@ -49,7 +48,6 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   List<Widget> screens = [
     NewRidesScreen(),
     CityRideScreen(isShowBackButton: false),
-    InterCityRideScreen(isShowBackButton: false),
     ProfileAndSettingsScreen(),
   ];
 
@@ -81,7 +79,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       NavBarItem(
                         label: MyStrings.newRide.tr,
                         imagePath: MyImages.homeImage,
-                        index: 1,
+                        index: 0,
                         isSelected: selectedIndex == 0,
                         press: () {
                           selectedIndex = 0;
@@ -92,7 +90,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       NavBarItem(
                         label: MyStrings.cityRide.tr,
                         imagePath: MyImages.city,
-                        index: 0,
+                        index: 1,
                         isSelected: selectedIndex == 1,
                         press: () {
                           Get.find<AcceptedRideController>().resetLoading();
@@ -105,28 +103,13 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                         },
                       ),
                       NavBarItem(
-                        label: MyStrings.interCityRide.tr,
-                        imagePath: MyImages.intercity,
-                        index: 2,
-                        isSelected: selectedIndex == 2,
-                        press: () {
-                          Get.find<AcceptedRideController>().resetLoading();
-                          Get.find<ActiveRideController>().resetLoading();
-                          Get.find<RunningRideController>().resetLoading();
-                          Get.find<AllRideController>().resetLoading();
-                          selectedIndex = 2;
-                          controller.selectedIndex = 2;
-                          setState(() {});
-                        },
-                      ),
-                      NavBarItem(
                         label: MyStrings.menu.tr,
                         imagePath: MyImages.menu,
                         index: 2,
-                        isSelected: selectedIndex == 3,
+                        isSelected: selectedIndex == 2,
                         press: () {
-                          selectedIndex = 3;
-                          controller.selectedIndex = 3;
+                          selectedIndex = 2;
+                          controller.selectedIndex = 2;
                           setState(() {});
                         },
                       ),
