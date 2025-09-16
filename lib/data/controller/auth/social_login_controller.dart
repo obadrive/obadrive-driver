@@ -15,11 +15,8 @@ class SocialLoginController extends GetxController {
   SocialLoginRepo repo;
   SocialLoginController({required this.repo});
 
-  // Configuração direta com serverClientId (Android) e escopos padrões
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-    serverClientId: Environment.googleServerClientId,
-    scopes: <String>['email', 'profile'],
-  );
+  // Usar instância padrão (API compatível com authenticate/initialize)
+  final GoogleSignIn googleSignIn = GoogleSignIn.instance;
   bool isGoogleSignInLoading = false;
 
   Future<void> signInWithGoogle() async {
@@ -28,19 +25,15 @@ class SocialLoginController extends GetxController {
       update();
       const List<String> scopes = <String>['email', 'profile'];
       await googleSignIn.signOut();
-      final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        isGoogleSignInLoading = false;
-        update();
-        return;
-      }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      await googleSignIn.initialize();
+      final googleUser = await googleSignIn.authenticate();
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       if (googleAuth.idToken == null) {
         isGoogleSignInLoading = false;
         update();
         return;
       }
-      // Em versões recentes, foque no idToken (accessToken pode não estar disponível)
+      // Usar idToken para o backend
       final token = googleAuth.idToken ?? '';
       printX(token);
 
