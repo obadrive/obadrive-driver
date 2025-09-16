@@ -80,6 +80,16 @@ class _OvoAppState extends State<OvoApp> {
         locale: localizeController.locale,
         translations: Messages(languages: widget.languages),
         fallbackLocale: Locale(localizeController.locale.languageCode, localizeController.locale.countryCode),
+        // Log de navegação: registra a tela atual ao entrar
+        routingCallback: (routing) {
+          if (routing != null && routing.current != null) {
+            // Ex.: [NAV] Entrou na tela: /subscription/create
+            // Use print normal para aparecer no logcat/console
+            // e mantenha simples para não poluir os logs
+            // ignore: avoid_print
+            print('[NAV] Entrou na tela: ${routing.current}');
+          }
+        },
       ),
     );
   }
