@@ -28,6 +28,9 @@ class _SubscriptionFormWidgetState extends State<SubscriptionFormWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Top tip
+              _buildTipCard(controller),
+              const SizedBox(height: Dimensions.space20),
               // Seleção de Serviço
               _buildSection(
                 MyStrings.selectService.tr,
@@ -210,6 +213,19 @@ class _SubscriptionFormWidgetState extends State<SubscriptionFormWidget> {
                             color: MyColor.colorGrey,
                           ),
                         ),
+                        if (paymentType['value'] == 'monthly_ride_based') ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.trending_down, size: 16, color: Colors.green),
+                              const SizedBox(width: 6),
+                              Text(
+                                '30% de cada corrida até quitar',
+                                style: regularSmall.copyWith(color: Colors.green[700]),
+                              )
+                            ],
+                          )
+                        ]
                       ],
                     ),
                   ),
@@ -219,6 +235,51 @@ class _SubscriptionFormWidgetState extends State<SubscriptionFormWidget> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildTipCard(SubscriptionController controller) {
+    final hasSelection = controller.selectedServiceId != null && controller.selectedPaymentType != null;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      padding: const EdgeInsets.all(Dimensions.space15),
+      decoration: BoxDecoration(
+        color: hasSelection ? MyColor.primaryColor.withOpacity(0.06) : MyColor.colorGrey.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(Dimensions.space12),
+        border: Border.all(color: (hasSelection ? MyColor.primaryColor : MyColor.colorGrey).withOpacity(0.25)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            hasSelection ? Icons.info : Icons.touch_app,
+            color: hasSelection ? MyColor.primaryColor : MyColor.colorGrey,
+            size: 20,
+          ),
+          const SizedBox(width: Dimensions.space10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hasSelection ? 'Revise os detalhes e crie sua assinatura' : 'Selecione um serviço e o tipo de pagamento',
+                  style: regularSmall.copyWith(
+                    color: MyColor.colorBlack,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  hasSelection
+                      ? 'Você poderá voltar ao app após o pagamento aprovado.'
+                      : 'Para começar, escolha o serviço e a forma de pagamento desejada.',
+                  style: regularSmall.copyWith(color: MyColor.colorGrey),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 

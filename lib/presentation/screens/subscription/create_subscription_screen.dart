@@ -25,6 +25,20 @@ class CreateSubscriptionScreen extends StatefulWidget {
 }
 
 class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
+  Future<void> _initialize() async {
+    final controller = Get.find<SubscriptionController>();
+    await controller.loadServices();
+    await controller.loadSubscriptions();
+    if (mounted && controller.hasActiveSubscription) {
+      // Se já tem assinatura ativa, sair automaticamente desta tela
+      Get.back();
+      return;
+    }
+    if (widget.selectedPaymentType != null) {
+      controller.selectedPaymentType = widget.selectedPaymentType!;
+      print('🎯 Tipo de pagamento definido: ${widget.selectedPaymentType}');
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -44,15 +58,7 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
     // Carregar serviços disponíveis e assinaturas existentes
     print('📡 Carregando serviços e assinaturas...');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = Get.find<SubscriptionController>();
-      controller.loadServices();
-      controller.loadSubscriptions();
-      
-      // Se veio da tela de planos, define o tipo de pagamento
-      if (widget.selectedPaymentType != null) {
-        controller.selectedPaymentType = widget.selectedPaymentType!;
-        print('🎯 Tipo de pagamento definido: ${widget.selectedPaymentType}');
-      }
+      _initialize();
     });
   }
 
@@ -121,6 +127,28 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
                     
                     const SizedBox(height: Dimensions.space20),
                     
+                    // Aviso de assinatura ativa
+                    if (controller.hasActiveSubscription) ...[
+                      _buildActiveSubscriptionBanner(),
+                      const SizedBox(height: Dimensions.space15),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () => Get.back(),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: MyColor.primaryColor,
+                            side: BorderSide(color: MyColor.primaryColor),
+                            padding: const EdgeInsets.symmetric(vertical: Dimensions.space15),
+                          ),
+                          child: Text(
+                            'Já tenho assinatura ativa, voltar',
+                            style: regularDefault.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: Dimensions.space20),
+                    ],
+
                     // Assinaturas Existentes
                     if (controller.subscriptionList.isNotEmpty) ...[
                       _buildExistingSubscriptions(controller),
@@ -134,6 +162,43 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
                   ],
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildActiveSubscriptionBanner() {
+    return Container(
+      padding: const EdgeInsets.all(Dimensions.space15),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(Dimensions.space12),
+        border: Border.all(color: Colors.green.withOpacity(0.25)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.verified, color: Colors.green, size: 22),
+          const SizedBox(width: Dimensions.space10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Assinatura ativa detectada',
+                  style: regularDefault.copyWith(
+                    color: MyColor.colorBlack,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Você já possui uma assinatura ativa. Você pode voltar e continuar usando o app.',
+                  style: regularSmall.copyWith(color: MyColor.colorGrey),
+                ),
+              ],
+            ),
+          )
+        ],
       ),
     );
   }
