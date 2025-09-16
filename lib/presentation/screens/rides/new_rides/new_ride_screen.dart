@@ -21,6 +21,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/helper/string_format_helper.dart';
 import '../../../components/switch/lite_rolling_switch.dart';
 import 'widget/new_ride_card.dart';
+import 'package:ovoride_driver/data/controller/subscription/subscription_status_controller.dart';
+import 'package:ovoride_driver/data/repo/subscription/subscription_repo.dart';
+import 'package:ovoride_driver/presentation/components/snack_bar/show_custom_snackbar.dart';
 
 class NewRidesScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? dashBoardScaffoldKey;
@@ -41,6 +44,13 @@ class _NewRidesScreenState extends State<NewRidesScreen> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       Get.find<DashBoardController>().isLoading = true;
       Get.find<DashBoardController>().initialData(shouldLoad: true);
+      // Garantir controlador de assinatura
+      if (!Get.isRegistered<SubscriptionStatusController>()) {
+        Get.put(SubscriptionRepo(apiClient: Get.find()));
+        Get.put(SubscriptionStatusController(subscriptionRepo: Get.find()));
+      } else {
+        Get.find<SubscriptionStatusController>().refreshSubscriptionStatus();
+      }
     });
   }
 
@@ -127,32 +137,44 @@ class _NewRidesScreenState extends State<NewRidesScreen> {
                     SizedBox(width: 5),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: GetBuilder<DashBoardController>(builder: (dashController) {
-                        return SizedBox(
-                          height: Dimensions.space45,
-                          child: LiteRollingSwitch(
-                            tValue: dashController.userOnline,
-                            width: Dimensions.space50 + 60,
-                            textOn: MyStrings.onLine.tr,
-                            textOnColor: MyColor.colorWhite,
-                            textOff: MyStrings.offLine.tr,
-                            colorOn: MyColor.colorGreen,
-                            colorOff: MyColor.colorBlack.withValues(alpha: 0.6),
-                            iconOn: Icons.network_check,
-                            iconOff: Icons.network_locked,
-                            animationDuration: const Duration(milliseconds: 300),
-                            onChanged: (bool state) {
-                              printX('onChanged>>>>${!state}');
-                              if (controller.isLoaderLoading == false) {
-                                dashController.changeOnlineStatus(state);
-                              }
-                            },
-                            onTap: () {
-                              printX('onTap>>>>');
-                              //controller.changeOnlineStatus(!controller.userOnline);
-                            },
-                          ),
-                        );
+                      child: GetX<SubscriptionStatusController>(builder: (subCtrl) {
+                        return GetBuilder<DashBoardController>(builder: (dashController) {
+                          final bool canGoOnline = subCtrl.hasActiveSubscription.value;
+                          final bool effectiveOnline = canGoOnline && dashController.userOnline;
+                          return SizedBox(
+                            height: Dimensions.space45,
+                            child: Opacity(
+                              opacity: canGoOnline ? 1.0 : 0.6,
+                              child: LiteRollingSwitch(
+                                tValue: effectiveOnline,
+                                width: Dimensions.space50 + 60,
+                                textOn: MyStrings.onLine.tr,
+                                textOnColor: MyColor.colorWhite,
+                                textOff: MyStrings.offLine.tr,
+                                colorOn: canGoOnline ? MyColor.colorGreen : MyColor.colorGrey,
+                                colorOff: MyColor.colorBlack.withValues(alpha: 0.6),
+                                iconOn: canGoOnline ? Icons.network_check : Icons.lock,
+                                iconOff: Icons.network_locked,
+                                animationDuration: const Duration(milliseconds: 300),
+                                onChanged: (bool state) {
+                                  if (!canGoOnline && state == true) {
+                                    // Bloquear mudança para online sem assinatura
+                                    CustomSnackBar.error(errorList: ['Ative sua assinatura para ficar Online']);
+                                    return;
+                                  }
+                                  if (controller.isLoaderLoading == false) {
+                                    dashController.changeOnlineStatus(state);
+                                  }
+                                },
+                                onTap: () {
+                                  if (!canGoOnline) {
+                                    CustomSnackBar.error(errorList: ['Assinatura necessária para ficar Online']);
+                                  }
+                                },
+                              ),
+                            ),
+                          );
+                        });
                       }),
                     ),
                     SizedBox(width: 10)
@@ -163,6 +185,32 @@ class _NewRidesScreenState extends State<NewRidesScreen> {
                   child: Column(
                     children: [
                       SizedBox(height: 10),
+                      // Aviso quando não há assinatura ativa
+                      GetX<SubscriptionStatusController>(builder: (subCtrl) {
+                        if (subCtrl.hasActiveSubscription.value) return const SizedBox.shrink();
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: Dimensions.space15),
+                          padding: const EdgeInsets.all(Dimensions.space12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.orange.withOpacity(0.25)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.lock, color: Colors.orange, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Você está Offline. Ative sua assinatura para ficar Online e receber corridas.',
+                                  style: regularSmall.copyWith(color: MyColor.colorBlack),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                       DriverKYCWarningSection(),
                       SizedBox(height: 2),
                       VehicleKYCWarningSection(),
