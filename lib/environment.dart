@@ -1,6 +1,6 @@
 class Environment {
   // ATTENTION Please update your desired data.
-  static const String appName = 'OvoRide DRIVER';
+  static const String appName = 'Obadrive DRIVER';
   static const String version = '1.0.0';
   static String defaultLangCode = "en";
   static String defaultLanguageName = "PT";
@@ -21,4 +21,8 @@ class Environment {
   static const String mapKey = "AIzaSyAlr1yhXQkzC49cLhB7xC8SValIINAI28E"; //Enter Your Map Api Key
   static const double mapDefaultZoom = 20;
   static const String devToken = "\$2y\$12\$mEVBW3QASB5HMBv8igls3ejh6zw2A0Xb480HWAmYq6BY9xEifyBjG"; //Do not change this token
+
+  // GOOGLE SIGN-IN (Android) - Web Client ID para serverClientId
+  // Fonte: Firebase console (OAuth 2.0 Client IDs - Web application)
+  static const String googleServerClientId = '476856846993-0cf0ug7og3rnm4aj9n9rnna907vlkmmi.apps.googleusercontent.com';
 }

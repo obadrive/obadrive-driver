@@ -1,4 +1,5 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../../environment.dart';
 import 'package:get/get.dart';
 import '../../../core/helper/string_format_helper.dart';
 import '../../../core/route/route.dart';
@@ -14,7 +15,11 @@ class SocialLoginController extends GetxController {
   SocialLoginRepo repo;
   SocialLoginController({required this.repo});
 
-  final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+  // Configure o GoogleSignIn com serverClientId (Android exige para idToken/serverAuthCode)
+  final GoogleSignIn googleSignIn = GoogleSignIn(
+    serverClientId: Environment.googleServerClientId,
+    scopes: <String>['email', 'profile'],
+  );
   bool isGoogleSignInLoading = false;
 
   Future<void> signInWithGoogle() async {
@@ -22,21 +27,26 @@ class SocialLoginController extends GetxController {
       isGoogleSignInLoading = true;
       update();
       const List<String> scopes = <String>['email', 'profile'];
-      googleSignIn.signOut();
-      await googleSignIn.initialize();
-      var googleUser = await googleSignIn.authenticate();
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      await googleSignIn.signOut();
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        isGoogleSignInLoading = false;
+        update();
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       if (googleAuth.idToken == null) {
         isGoogleSignInLoading = false;
         update();
         return;
       }
-      final GoogleSignInClientAuthorization? authorization = await googleUser.authorizationClient.authorizationForScopes(scopes);
-      printX(authorization?.accessToken);
+      // accessToken pode vir nulo no Android; use idToken se necessário pelo backend
+      final accessToken = googleAuth.accessToken ?? '';
+      printX(accessToken);
 
       await socialLoginUser(
         provider: 'google',
-        accessToken: authorization?.accessToken ?? '',
+        accessToken: accessToken,
       );
     } catch (e) {
       printX(e.toString());
