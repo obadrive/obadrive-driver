@@ -17,6 +17,8 @@ import 'package:ovoride_driver/core/utils/my_images.dart';
 import 'package:ovoride_driver/presentation/components/will_pop_widget.dart';
 import 'package:ovoride_driver/presentation/screens/profile_and_settings/profile_and_settings_screen.dart';
 import 'package:ovoride_driver/presentation/screens/rides/new_rides/new_ride_screen.dart';
+import 'package:ovoride_driver/data/repo/subscription/subscription_repo.dart';
+import 'package:ovoride_driver/data/controller/subscription/subscription_status_controller.dart';
 
 class DashBoardScreen extends StatefulWidget {
   const DashBoardScreen({super.key});
@@ -36,6 +38,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     Get.put(ActiveRideController(repo: Get.find()));
     Get.put(RunningRideController(repo: Get.find()));
     Get.put(AllRideController(repo: Get.find()));
+    // Registrar controladores de assinatura cedo no ciclo de vida
+    if (!Get.isRegistered<SubscriptionStatusController>()) {
+      Get.put(SubscriptionRepo(apiClient: Get.find()), permanent: true);
+      Get.put(SubscriptionStatusController(subscriptionRepo: Get.find()), permanent: true);
+    }
     //
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
