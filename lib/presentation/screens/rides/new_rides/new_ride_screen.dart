@@ -137,44 +137,68 @@ class _NewRidesScreenState extends State<NewRidesScreen> {
                     SizedBox(width: 5),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: GetX<SubscriptionStatusController>(builder: (subCtrl) {
-                        return GetBuilder<DashBoardController>(builder: (dashController) {
-                          final bool canGoOnline = subCtrl.hasActiveSubscription.value;
-                          final bool effectiveOnline = canGoOnline && dashController.userOnline;
+                      child: GetBuilder<DashBoardController>(builder: (dashController) {
+                        // Verificar se o SubscriptionStatusController está disponível
+                        if (!Get.isRegistered<SubscriptionStatusController>()) {
                           return SizedBox(
                             height: Dimensions.space45,
-                            child: Opacity(
-                              opacity: canGoOnline ? 1.0 : 0.6,
-                              child: LiteRollingSwitch(
-                                tValue: effectiveOnline,
-                                width: Dimensions.space50 + 60,
-                                textOn: MyStrings.onLine.tr,
-                                textOnColor: MyColor.colorWhite,
-                                textOff: MyStrings.offLine.tr,
-                                colorOn: canGoOnline ? MyColor.colorGreen : MyColor.colorGrey,
-                                colorOff: MyColor.colorBlack.withValues(alpha: 0.6),
-                                iconOn: canGoOnline ? Icons.network_check : Icons.lock,
-                                iconOff: Icons.network_locked,
-                                animationDuration: const Duration(milliseconds: 300),
-                                onChanged: (bool state) {
-                                  if (!canGoOnline && state == true) {
-                                    // Bloquear mudança para online sem assinatura
-                                    CustomSnackBar.error(errorList: ['Ative sua assinatura para ficar Online']);
-                                    return;
-                                  }
-                                  if (controller.isLoaderLoading == false) {
-                                    dashController.changeOnlineStatus(state);
-                                  }
-                                },
-                                onTap: () {
-                                  if (!canGoOnline) {
-                                    CustomSnackBar.error(errorList: ['Assinatura necessária para ficar Online']);
-                                  }
-                                },
-                              ),
+                            child: LiteRollingSwitch(
+                              tValue: dashController.userOnline,
+                              width: Dimensions.space50 + 60,
+                              textOn: MyStrings.onLine.tr,
+                              textOnColor: MyColor.colorWhite,
+                              textOff: MyStrings.offLine.tr,
+                              colorOn: MyColor.colorGreen,
+                              colorOff: MyColor.colorBlack.withValues(alpha: 0.6),
+                              iconOn: Icons.network_check,
+                              iconOff: Icons.network_locked,
+                              animationDuration: const Duration(milliseconds: 300),
+                              onChanged: (bool state) {
+                                if (dashController.isLoaderLoading == false) {
+                                  dashController.changeOnlineStatus(state);
+                                }
+                              },
                             ),
                           );
-                        });
+                        }
+                        
+                        final subscriptionController = Get.find<SubscriptionStatusController>();
+                        final bool canGoOnline = subscriptionController.hasActiveSubscription.value;
+                        final bool effectiveOnline = canGoOnline && dashController.userOnline;
+                        
+                        return SizedBox(
+                          height: Dimensions.space45,
+                          child: Opacity(
+                            opacity: canGoOnline ? 1.0 : 0.6,
+                            child: LiteRollingSwitch(
+                              tValue: effectiveOnline,
+                              width: Dimensions.space50 + 60,
+                              textOn: MyStrings.onLine.tr,
+                              textOnColor: MyColor.colorWhite,
+                              textOff: MyStrings.offLine.tr,
+                              colorOn: canGoOnline ? MyColor.colorGreen : MyColor.colorGrey,
+                              colorOff: MyColor.colorBlack.withValues(alpha: 0.6),
+                              iconOn: canGoOnline ? Icons.network_check : Icons.lock,
+                              iconOff: Icons.network_locked,
+                              animationDuration: const Duration(milliseconds: 300),
+                              onChanged: (bool state) {
+                                if (!canGoOnline && state == true) {
+                                  // Bloquear mudança para online sem assinatura
+                                  CustomSnackBar.error(errorList: ['Ative sua assinatura para ficar Online']);
+                                  return;
+                                }
+                                if (dashController.isLoaderLoading == false) {
+                                  dashController.changeOnlineStatus(state);
+                                }
+                              },
+                              onTap: () {
+                                if (!canGoOnline) {
+                                  CustomSnackBar.error(errorList: ['Assinatura necessária para ficar Online']);
+                                }
+                              },
+                            ),
+                          ),
+                        );
                       }),
                     ),
                     SizedBox(width: 10)
@@ -186,8 +210,17 @@ class _NewRidesScreenState extends State<NewRidesScreen> {
                     children: [
                       SizedBox(height: 10),
                       // Aviso quando não há assinatura ativa
-                      GetX<SubscriptionStatusController>(builder: (subCtrl) {
-                        if (subCtrl.hasActiveSubscription.value) return const SizedBox.shrink();
+                      Builder(builder: (context) {
+                        // Verificar se o SubscriptionStatusController está disponível
+                        if (!Get.isRegistered<SubscriptionStatusController>()) {
+                          return const SizedBox.shrink();
+                        }
+                        
+                        final subscriptionController = Get.find<SubscriptionStatusController>();
+                        if (subscriptionController.hasActiveSubscription.value) {
+                          return const SizedBox.shrink();
+                        }
+                        
                         return Container(
                           margin: const EdgeInsets.symmetric(horizontal: Dimensions.space15),
                           padding: const EdgeInsets.all(Dimensions.space12),
